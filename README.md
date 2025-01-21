@@ -1,2 +1,3 @@
-# my-amazon-bedrock-samples
-My examples to tackle GenAI / LLM problem using Amazon Bedrock
+# LLM Samples Using Amazon Bedrock
+
+Make something useful for AWS customers.
