@@ -1,3 +1,17 @@
+*.swp
+package-lock.json
+__pycache__
+.pytest_cache
+.venv
+*.egg-info
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# ignore lambda layer
+**/lambda-layer/
+
 # Ignore jsonline files
 **/*.jsonl
 
