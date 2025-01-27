@@ -9,10 +9,10 @@ from pyrate_limiter import Duration, Limiter, Rate
 from pyrate_limiter.buckets.in_memory_bucket import InMemoryBucket
 import boto3
 
-rates = [Rate(50, Duration.MINUTE)]
-basic_bucket = InMemoryBucket(rates)
+rates = [Rate(1900, Duration.MINUTE)]
+# basic_bucket = InMemoryBucket(rates)
 
-limiter = Limiter(basic_bucket, max_delay=1000*60*60)
+limiter = Limiter(rates, max_delay=1000*60*60)
 
 bedrock_runtime = boto3.client('bedrock-runtime')
 
@@ -20,7 +20,7 @@ MODEL_ID = 'amazon.titan-embed-text-v2:0'
 DIMENSIONS = 256
 
 async def limited_function(row, start_time):
-    limiter.try_acquire('identity')
+    limiter.try_acquire(row['recordId'])
 
     sample_input = {
         "inputText": row['modelInput.inputText'],
@@ -37,13 +37,24 @@ async def limited_function(row, start_time):
     response_body = json.loads(response.get('body').read())
     embeddings = response_body['embedding']    
     print(f"t + {time() - start_time:.5f}")
-    return embeddings
+    return row["recordId"], embeddings
 
 async def invoke_model_with_ratelimit(df):
     start_time = time()
-    tasks = [limited_function(row, start_time) for _, row in df.iterrows()]
-    await asyncio.gather(*tasks)
+    tasks = [asyncio.create_task(limited_function(row, start_time)) for _, row in df.iterrows()]
+
+    # wait for all tasks to complete
+    await asyncio.wait(tasks)
+
+    # Check status of each task
+    completed = sum(1 for t in tasks if t.done() and not t.exception())
+    errors = sum(1 for t in tasks if t.done() and t.exception())
+    
+    print(f"Completed: {completed}, Errors: {errors}")    
     print(f"Ran {len(df)} requests in {time() - start_time:.5f} seconds")
+
+    results = [t.result()[0] for t in tasks if t.done() and not t.exception()]
+    print(results)
 
 
 if __name__ == "__main__":
