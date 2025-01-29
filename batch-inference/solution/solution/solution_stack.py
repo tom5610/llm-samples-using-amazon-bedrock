@@ -8,7 +8,8 @@ from aws_cdk import (
     aws_iam as iam,
     # aws_sqs as sqs,
     RemovalPolicy,
-    aws_s3 as s3
+    aws_s3 as s3,
+    CfnOutput
 )
 from constructs import Construct
 
@@ -18,14 +19,6 @@ class SolutionStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-
-        # The code that defines your stack goes here
-
-        # example resource
-        # queue = sqs.Queue(
-        #     self, "SolutionQueue",
-        #     visibility_timeout=Duration.seconds(300),
-        # )
 
         # Create DynamoDB table
         table = dynamodb.Table(
@@ -53,9 +46,9 @@ class SolutionStack(Stack):
         )
 
         table.add_global_secondary_index(
-            index_name="job-arn-index",
+            index_name="batch-job-arn-index",
             partition_key=dynamodb.Attribute(
-                name="job_arn",
+                name="batch_job_arn",
                 type=dynamodb.AttributeType.STRING
             ),
             sort_key=dynamodb.Attribute(
@@ -186,3 +179,6 @@ class SolutionStack(Stack):
         bedrock_status_rule.add_target(targets.LambdaFunction(status_monitor))
 
         
+        CfnOutput(self, "BatchInferenceRoleArn", value=bedrock_role.role_arn)
+        CfnOutput(self, "DataS3BucketName", value=bucket.bucket_name)
+        CfnOutput(self, "BatchRegistryTableName", value=table.table_name)

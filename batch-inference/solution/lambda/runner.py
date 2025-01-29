@@ -3,6 +3,8 @@ import boto3
 from datetime import datetime, timezone
 import uuid
 import time
+from boto3.dynamodb.conditions import Key
+
 
 # Initialize AWS clients
 dynamodb = boto3.resource('dynamodb')
@@ -55,13 +57,7 @@ def get_pending_embedding_batch_records():
     """Query DynamoDB for pending jobs that haven't been started."""
     response = table.query(
         IndexName='status-index',
-        KeyConditionExpression='#status = :status',
-        ExpressionAttributeNames={
-            '#status': 'status'
-        },
-        ExpressionAttributeValues={
-            ':status': PENDING_EMBEDDING_BATCH_STATUS
-        }
+        KeyConditionExpression=Key('status').eq(PENDING_EMBEDDING_BATCH_STATUS)
     )
     return response.get('Items', [])
 
@@ -69,7 +65,7 @@ def create_batch_job(job_item):
     """Create a Bedrock batch inference job."""
     try:
         current_time = datetime.now(timezone.utc).isoformat()
-        job_name = f"{BATCH_JOB_NAME_PREFIX}-{str(uuid.uuid4())[:8]}"
+        job_name = f"{BATCH_JOB_NAME_PREFIX}-{str(uuid.uuid4())[:12]}"
         
         response = bedrock.create_model_invocation_job(
             modelId=MODEL_ID,

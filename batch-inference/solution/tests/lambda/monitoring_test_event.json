@@ -1,0 +1,20 @@
+{
+    "version": "0",
+    "id": "b96149b7-4d59-2830-1910-f7c1182d0361",
+    "detail-type": "Batch Inference Job State Change",
+    "source": "test.app",
+    "account": "123433547471",
+    "time": "2025-01-28T22:25:48Z",
+    "region": "us-east-1",
+    "resources": [],
+    "detail": {
+      "version": "0.0",
+      "accountId": "123433547471",
+      "batchJobName": "embedding-batch-job-402ff1bf",
+      "batchJobArn": "arn:aws:bedrock:us-east-1:123433547471:model-invocation-job/h9mj0s842mk7",
+      "batchModelId": "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0",
+      "status": "Completed",
+      "failureMessage": "",
+      "creationTime": "Jan 29, 2025, 10:47:53 PM"
+    }
+  }
